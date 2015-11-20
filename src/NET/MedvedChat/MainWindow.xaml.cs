@@ -32,6 +32,12 @@ namespace MedvedChat
             client.UserListMessageAccepted += OnUserList;
             client.Log += OnLog;
 
+            var v = new ValueFile();
+            addrTextBox.Text = (v.Read("server") ?? "themassacre.org");
+            nicknameTextBox.Text = (v.Read("nickname") ?? "User" + new Random().Next(100, 999));
+            inputBox.Text = (v.Read("input") ?? "");
+            chatBox.Text = (v.Read("log") ?? "");
+            chatBox.ScrollToEnd();
             currentAddr = addrTextBox.Text;
             Connect();
 
@@ -163,6 +169,15 @@ namespace MedvedChat
                 }
                 catch (Exception) { }
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var v = new ValueFile();
+            v.Write("server", currentAddr);
+            v.Write("nickname", nicknameTextBox.Text);
+            v.Write("input", inputBox.Text);
+            v.Write("log", chatBox.Text);
         }
     }
 }
