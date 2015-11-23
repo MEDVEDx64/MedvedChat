@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace MedvedChat
@@ -6,13 +8,45 @@ namespace MedvedChat
     class ValueFile
     {
         const string EXTENSION = ".yunotxt";
+        const string lkFileBase = "lock";
+        string lkFile;
+
         string prefix;
         char crew;
+        bool locked = false;
 
-        public ValueFile(string prefix = "", char crew = 'v')
+        public ValueFile(string prefix = "MedvedChat.var\\", char crew = 'v')
         {
             this.prefix = prefix;
             this.crew = crew;
+            Directory.CreateDirectory(prefix);
+            lkFile = crew + "_"  + lkFileBase;
+
+            if (File.Exists(prefix + lkFile))
+            {
+                int pid = 0;
+                using (var f = new BinaryReader(new FileStream(prefix + lkFile, FileMode.Open)))
+                {
+                    pid = f.ReadInt32();
+                }
+                if (Process.GetProcesses().Any(x => x.Id == pid)) locked = true;
+                else WriteLockFile();
+            }
+
+            else WriteLockFile();
+        }
+
+        private void WriteLockFile()
+        {
+            using (var f = new BinaryWriter(new FileStream(prefix + lkFile, FileMode.Create)))
+            {
+                f.Write(Process.GetCurrentProcess().Id);
+            }
+        }
+
+        public void DestroyLockFile()
+        {
+            if (!locked && File.Exists(prefix + lkFile)) File.Delete(prefix + lkFile);
         }
 
         private string MakePath(string valueName)
@@ -55,6 +89,8 @@ namespace MedvedChat
 
         public bool Write(string valueName, string value)
         {
+            if (locked) return false;
+
             try
             {
                 using (FileStream f = new FileStream(MakePath(valueName), FileMode.Create))

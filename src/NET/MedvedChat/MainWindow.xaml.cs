@@ -22,6 +22,7 @@ namespace MedvedChat
     {
         TrueClient client = new TrueClient();
         string currentAddr = null;
+        ValueFile v;
 
         public MainWindow()
         {
@@ -32,18 +33,22 @@ namespace MedvedChat
             client.UserListMessageAccepted += OnUserList;
             client.Log += OnLog;
 
-            var v = new ValueFile();
+            v = new ValueFile();
             addrTextBox.Text = (v.Read("server") ?? "themassacre.org");
             nicknameTextBox.Text = (v.Read("nickname") ?? "User" + new Random().Next(100, 999));
             inputBox.Text = (v.Read("input") ?? "");
             chatBox.Text = (v.Read("log") ?? "");
-            chatBox.ScrollToEnd();
+            if (chatBox.Text.Length > 0) PrintLine("");
             currentAddr = addrTextBox.Text;
             Connect();
 
             Thread keepalive = new Thread(KeepaliveThread);
             keepalive.IsBackground = true;
             keepalive.Start();
+
+            Thread saving = new Thread(SavingThread);
+            saving.IsBackground = true;
+            saving.Start();
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -171,13 +176,40 @@ namespace MedvedChat
             }
         }
 
+        private void SaveValues()
+        {
+            string nick = null, input = null, log = null;
+            Dispatcher.Invoke((Action)(() =>
+            {
+                nick = nicknameTextBox.Text;
+                input = inputBox.Text;
+                log = chatBox.Text;
+            }));
+
+            v.Write("server", currentAddr);
+            v.Write("nickname", nick);
+            v.Write("input", input);
+            v.Write("log", log);
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            var v = new ValueFile();
-            v.Write("server", currentAddr);
-            v.Write("nickname", nicknameTextBox.Text);
-            v.Write("input", inputBox.Text);
-            v.Write("log", chatBox.Text);
+            SaveValues();
+            v.DestroyLockFile();
+        }
+
+        private void SavingThread()
+        {
+            while(true)
+            {
+                Thread.Sleep(60000);
+                SaveValues();
+            }
+        }
+
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            chatBox.ScrollToEnd();
         }
     }
 }

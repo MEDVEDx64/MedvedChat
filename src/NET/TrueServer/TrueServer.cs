@@ -33,7 +33,7 @@ namespace TrueServer
                 while (true)
                 {
                     var s = socket.Accept();
-                    Console.WriteLine("Incoming connection " + s.LocalEndPoint);
+                    Console.WriteLine("Incoming connection " + s.RemoteEndPoint);
                     users.Add(new SrvUser(s, users));
                 }
             }
@@ -193,20 +193,19 @@ namespace TrueServer
                         SendUserList();
                     }
 
-                    Console.WriteLine("Packet " + c + ": " + text);
+                    Console.WriteLine("> " + (nick == null ? "" : "(" + nick + ") ") + c + ": " + text);
                 }
-
-                Console.WriteLine("Disconnected " + socket.LocalEndPoint);
             }
 
             catch(Exception e)
             {
-                Console.WriteLine("Client thread has crashed: " + e);
+                Console.WriteLine("ex: " + e.GetType() + " " + e.Message);
             }
 
             finally
             {
-                if(nick != null) BroadcastMessage(nick + " has left", OutcomingTypes.Notification);
+                Console.WriteLine("Disconnected " + socket.RemoteEndPoint);
+                if (nick != null) BroadcastMessage(nick + " has left", OutcomingTypes.Notification);
                 BroadcastUserList();
                 users.Remove(this);
             }
