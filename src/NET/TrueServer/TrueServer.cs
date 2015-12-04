@@ -93,7 +93,7 @@ namespace TrueServer
             try
             {
                 SendMessage("*** TrueServer alpha - Welcome aboard! ***", OutcomingTypes.Notification);
-                byte[] buffer = new byte[0x4002];
+                byte[] buffer = new byte[0x4003];
 
                 while (true)
                 {
