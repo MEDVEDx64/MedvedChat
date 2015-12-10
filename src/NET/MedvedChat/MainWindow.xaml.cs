@@ -172,7 +172,9 @@ namespace MedvedChat
                     Thread.Sleep(10000);
                     if (!client.IsConnected) Connect();
                 }
-                catch (Exception) { }
+                catch (Exception e) {
+                    OnLog("Biatch. " + e);
+                }
             }
         }
 

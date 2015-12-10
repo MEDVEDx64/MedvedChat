@@ -48,7 +48,8 @@ namespace TrueServer
                     Thread.Sleep(5000);
                     SrvUser.BroadcastUserList(users);
                     Thread.Sleep(5000);
-                    foreach (var u in users)
+                    var arr = users.ToArray();
+                    foreach (var u in arr)
                     {
                         if (!u.IsConnected) users.Remove(u);
                     }
@@ -93,6 +94,8 @@ namespace TrueServer
             try
             {
                 SendMessage("*** TrueServer alpha - Welcome aboard! ***", OutcomingTypes.Notification);
+                SendUserList();
+
                 byte[] buffer = new byte[0x4003];
 
                 while (true)
@@ -225,7 +228,8 @@ namespace TrueServer
         public void SendUserList()
         {
             string list = "";
-            foreach (var u in users)
+            var arr = users.ToArray();
+            foreach (var u in arr)
             {
                 if (!u.IsConnected || u.Nickname == null) continue;
                 if (list.Length > 0) list += '\n';
